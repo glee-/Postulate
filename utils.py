@@ -3,12 +3,6 @@ import numpy as np
 import math
 from scipy.integrate import quad
 
-def get_weights(length):
-    weights = []
-    for i in range(length):
-        weights.append(0.95**i)
-    return weights
-
 def get_user(key, uname):
     payload = {"k": key, "u": uname, "type": "string"}
     r = requests.get("https://osu.ppy.sh/api/get_user", params = payload)
@@ -36,8 +30,19 @@ def get_user_best(key, uname):
 
     return pp_list, acc_list, score_list
 
-def weighted_avg(lst, weights):
+def get_weights(length):
+    weights = []
+    for i in range(length):
+        weights.append(0.95**i)
+    return weights
+
+def weighted_avg(lst):
+    weights = get_weights(len(lst))
     return [lst[i] * weights[i] for i in range(len(lst))]
+
+def unweight(lst):
+    weights = get_weights(len(lst))
+    return [lst[i] / weights[i] for i in range(len(lst))]
 
 def calculate_exp_regression(lst):
     #Fitting: y = ab^x
@@ -53,15 +58,33 @@ def calculate_unique(bonuspp):
     return math.log(1 - bonuspp / 416.6667, 0.9994)
 
 def calculate_new_pp(pp_list, unique_scores, a, b, pp):
+
     scores = np.arange(unique_scores + 1)
-    scores[:len(pp_list)] = pp_list
 
     for i in range(len(pp_list), len(scores)):
         scores[i] = a * b ** i
 
+    scores = unweight(scores)
+
+    scores[:len(pp_list)] = pp_list
     scores[-1] = pp
+
     scores = sorted(scores, reverse = True)
-    new_weighted_pp = sum(weighted_avg(scores, get_weights(len(scores))))
+    new_weighted_pp = sum(weighted_avg(scores))
     new_bonus_pp = 416.6667 * (1 - 0.9994 ** (unique_scores + 1))
+    print("oldtotal: ", (sum(pp_list)))
+    print("newtotal: ", (sum(scores[:100])))
+    # print("diff: ", list(set(scores) - set(pp_list)))
+    print("weighted:, ", new_weighted_pp)
+    ta = 0
+    tb = 0
+
+    # for i in range(len(pp_list)):
+    #     ta += pp_list[i]
+    # for i in range(len(scores)):
+    #     tb += scores[i]
+    # print("oldtotal: ", len(pp_list))
+    # print("newtotal: ", len(scores))
+    print("done")
 
     return new_weighted_pp + new_bonus_pp

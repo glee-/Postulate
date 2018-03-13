@@ -29,22 +29,25 @@ def main(old=None, newpp=None, uname=None, pp=None):
         total_score, total_acc, pp_raw, pp_rank = get_user(key, uname)
 
         pp_list, acc_list, score_list = get_user_best(key, uname)
+
         weights = get_weights(len(pp_list));
 
         unweighted_pp_sum = sum(pp_list)
 
-        weighted_pp_avg = weighted_avg(pp_list, weights)
+        weighted_pp_avg = weighted_avg(pp_list)
         weighted_pp_sum = sum(weighted_pp_avg)
+        print("Target:", weighted_pp_sum)
 
-        top_acc = sum(weighted_avg(acc_list, weights)) / sum(weights)
+        top_acc = sum(weighted_avg(acc_list)) / sum(weights)
 
         a, b = calculate_exp_regression(weighted_pp_avg)
         tail = calculate_estimation(a, b)
-
+        print("Tail: ", tail)
         bonuspp = pp_raw - (weighted_pp_sum + tail)
         unique_scores = calculate_unique(bonuspp)
 
         newpp = calculate_new_pp(pp_list, unique_scores, a, b, pp)
+
 
         resp = make_response(render_template("estimate.html", old = pp_raw, newpp = newpp, uname= uname, pp=pp))
         resp.set_cookie("uname", uname)
