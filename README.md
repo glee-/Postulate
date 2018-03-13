@@ -26,5 +26,10 @@ Find the minimum amount of rank gained based on the new potential pp.
 Use scores and accuracy to provide other sources of estimation for number of unique scores.
 --> give a range of possible gain
 
+#Example Usage
+Install dependencies: flask, numpy, scipy
+Change directory into the Postulate directory
+Run the following command in a terminal session: FLASK_APP=app.py flask run
+
 References:
 https://osu.ppy.sh/wiki/Performance_Points#Weightage_system

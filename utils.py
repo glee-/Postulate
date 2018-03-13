@@ -52,5 +52,16 @@ def calculate_estimation(a, b):
 def calculate_unique(bonuspp):
     return math.log(1 - bonuspp / 416.6667, 0.9994)
 
-def calculate_new_pp(pp_list, pp):
-    
+def calculate_new_pp(pp_list, unique_scores, a, b, pp):
+    scores = np.arange(unique_scores + 1)
+    scores[:len(pp_list)] = pp_list
+
+    for i in range(len(pp_list), len(scores)):
+        scores[i] = a * b ** i
+
+    scores[-1] = pp
+    scores = sorted(scores, reverse = True)
+    new_weighted_pp = sum(weighted_avg(scores, get_weights(len(scores))))
+    new_bonus_pp = 416.6667 * (1 - 0.9994 ** (unique_scores + 1))
+
+    return new_weighted_pp + new_bonus_pp
