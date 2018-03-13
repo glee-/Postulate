@@ -50,3 +50,7 @@ def main(old=None, newpp=None, uname=None, pp=None):
         resp.set_cookie("uname", uname)
         # return str(newpp)
         return resp
+
+@app.errorhandler(400)
+def err400(err):
+    return redirect(url_for("main"))

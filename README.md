@@ -30,6 +30,8 @@ Use scores and accuracy to provide other sources of estimation for number of uni
 Install dependencies: flask, numpy, scipy
 Change directory into the Postulate directory
 Run the following command in a terminal session: FLASK_APP=app.py flask run
+Integrate autocomplete from osu.ppy.sh --> https://osu.ppy.sh/p/profile?check=1&query=test
+
 
 References:
 https://osu.ppy.sh/wiki/Performance_Points#Weightage_system
