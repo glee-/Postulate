@@ -2,6 +2,10 @@ from flask import *
 from api_key import key
 from utils import *
 
+##################################################
+# Author: glee-
+# https://github.com/glee-/Postulate
+##################################################
 
 app = Flask(__name__)
 
@@ -16,7 +20,6 @@ def main(old=None, newpp=None, uname=None, pp=None):
         resp.set_cookie("uname", "", expires = 0)
         return resp
 
-
     if request.method == "POST":
         uname = ""
         if "uname" in request.cookies:
@@ -27,31 +30,12 @@ def main(old=None, newpp=None, uname=None, pp=None):
         pp = int(request.form["pp"])
 
         total_score, total_acc, pp_raw, pp_rank = get_user(key, uname)
-
         pp_list, acc_list, score_list = get_user_best(key, uname)
-
-        weights = get_weights(len(pp_list));
-
-        unweighted_pp_sum = sum(pp_list)
-
-        weighted_pp_avg = weighted_avg(pp_list)
-        weighted_pp_sum = sum(weighted_pp_avg)
-        print("Target:", weighted_pp_sum)
-
-        top_acc = sum(weighted_avg(acc_list)) / sum(weights)
-
-        a, b = calculate_exp_regression(weighted_pp_avg)
-        tail = calculate_estimation(a, b)
-        print("Tail: ", tail)
-        bonuspp = pp_raw - (weighted_pp_sum + tail)
-        unique_scores = calculate_unique(bonuspp)
-
-        newpp = calculate_new_pp(pp_list, unique_scores, a, b, pp)
-
+        newpp = get_newpp(pp_list, pp_raw, pp)
+        newpp = round(newpp, 2)
 
         resp = make_response(render_template("estimate.html", old = pp_raw, newpp = newpp, uname= uname, pp=pp))
         resp.set_cookie("uname", uname)
-        # return str(newpp)
         return resp
 
 @app.errorhandler(400)

@@ -3,6 +3,12 @@ import numpy as np
 import math
 from scipy.integrate import quad
 
+##################################################
+# Author: glee-
+# https://github.com/glee-/Postulate
+##################################################
+
+#Pull data from the API corresponding to user data
 def get_user(key, uname):
     payload = {"k": key, "u": uname, "type": "string"}
     r = requests.get("https://osu.ppy.sh/api/get_user", params = payload)
@@ -18,7 +24,6 @@ def get_user_best(key, uname):
     pp_list = []
     acc_list = []
     score_list = []
-    # print(json[0])
     for result in json:
         pp_list.append(float(result["pp"]))
 
@@ -51,40 +56,40 @@ def calculate_exp_regression(lst):
     b, a = np.exp(np.polyfit(x, np.log(y), 1))
     return a,b
 
-def calculate_estimation(a, b):
+def estimate_tail(a, b):
     return quad(lambda x,a,b: a * b ** x, 99, np.inf, args = (a,b))[0]
 
 def calculate_unique(bonuspp):
     return math.log(1 - bonuspp / 416.6667, 0.9994)
 
-def calculate_new_pp(pp_list, unique_scores, a, b, pp):
+def calculate_new_pp(pp_list, unique_scores, a, b, pp, mode="predict"):
+    scores = []
+    if mode == "predict":
+        scores = np.arange(unique_scores + 1)
+        for i in range(len(pp_list), len(scores)):
+            scores[i] = a * b ** i
+        scores = unweight(scores)
 
-    scores = np.arange(unique_scores + 1)
-
-    for i in range(len(pp_list), len(scores)):
-        scores[i] = a * b ** i
-
-    scores = unweight(scores)
+    elif mode == "baseline":
+        scores = np.full(int(unique_scores + 1), pp_list[-1])
 
     scores[:len(pp_list)] = pp_list
     scores[-1] = pp
-
     scores = sorted(scores, reverse = True)
+
     new_weighted_pp = sum(weighted_avg(scores))
     new_bonus_pp = 416.6667 * (1 - 0.9994 ** (unique_scores + 1))
-    print("oldtotal: ", (sum(pp_list)))
-    print("newtotal: ", (sum(scores[:100])))
-    # print("diff: ", list(set(scores) - set(pp_list)))
-    print("weighted:, ", new_weighted_pp)
-    ta = 0
-    tb = 0
-
-    # for i in range(len(pp_list)):
-    #     ta += pp_list[i]
-    # for i in range(len(scores)):
-    #     tb += scores[i]
-    # print("oldtotal: ", len(pp_list))
-    # print("newtotal: ", len(scores))
-    print("done")
 
     return new_weighted_pp + new_bonus_pp
+
+def get_newpp(pp_list, pp_raw, pp):
+    weighted_pp_avg = weighted_avg(pp_list)
+    weighted_pp_sum = sum(weighted_pp_avg)
+
+    a, b = calculate_exp_regression(weighted_pp_avg)
+    tail = estimate_tail(a, b)
+    bonuspp = pp_raw - (weighted_pp_sum + tail)
+
+    unique_scores = calculate_unique(bonuspp)
+
+    return calculate_new_pp(pp_list, unique_scores, a, b, pp, mode="baseline")

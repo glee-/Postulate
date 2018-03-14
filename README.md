@@ -21,7 +21,13 @@ Map pp = PP[1] * 0.95^0 + PP[2] * 0.95^1 + PP[3] * 0.95^2 + ... + PP[n] * 0.95^(
 
 The total amount of pp that has been obtained is then the following: Map pp + Bonus pp
 
-From this point, it is trivial to calculate the amount of pp that would be gained
+From this point, it is trivial to calculate the amount of pp that would be gained.
+
+To gauge the accuracy of the prediction we can compare the result to a hard lower bound
+for the amount of bonus pp that is accumulated. This can be calculated by looking at the total number of plays,
+and the minimum posted to create a list of pp values that can then be weighted accordingly.
+Since pp is ordered numerically in descending order, this is the absolute worst case
+that can happen.
 
 ## Todo
 
