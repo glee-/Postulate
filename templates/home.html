@@ -9,6 +9,15 @@
 </head>
 
 <body>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class=flashes>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
   <form action="/osu" method="POST">
     User Name: <input type="text" name="uname"><br>
     Hypothetical PP: <input type="text" name="pp"><br>

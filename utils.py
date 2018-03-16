@@ -14,7 +14,7 @@ def get_user(key, uname):
     r = requests.get("https://osu.ppy.sh/api/get_user", params = payload)
     json = r.json()
     user = json[0]
-    return int(user["total_score"]), float(user["accuracy"]), int(user["pp_raw"]), int(user["pp_rank"])
+    return int(user["total_score"]), float(user["accuracy"]), float(user["pp_raw"]), int(user["pp_rank"]), int(user["playcount"])
 
 def get_user_best(key, uname):
     payload = {"k": key, "u": uname, "limit": 100, "type": "string"}
@@ -63,6 +63,8 @@ def calculate_unique(bonuspp):
     return math.log(1 - bonuspp / 416.6667, 0.9994)
 
 def calculate_new_pp(pp_list, unique_scores, a, b, pp, mode="predict"):
+    unique_scores = round(unique_scores)
+    unique_scores = unique_scores if len(pp_list) >= 100 else len(pp_list)
     scores = []
     if mode == "predict":
         scores = np.arange(unique_scores + 1)
@@ -75,14 +77,21 @@ def calculate_new_pp(pp_list, unique_scores, a, b, pp, mode="predict"):
 
     scores[:len(pp_list)] = pp_list
     scores[-1] = pp
+
+    print(scores)
+    print(pp_list)
+
     scores = sorted(scores, reverse = True)
+
+    # print(weighted_avg(scores))
+    # print(weighted_avg(pp_list))
 
     new_weighted_pp = sum(weighted_avg(scores))
     new_bonus_pp = 416.6667 * (1 - 0.9994 ** (unique_scores + 1))
 
-    return new_weighted_pp + new_bonus_pp
+    return (new_weighted_pp + new_bonus_pp)
 
-def get_newpp(pp_list, pp_raw, pp):
+def get_newpp(pp_list, pp_raw, pp, plays):
     weighted_pp_avg = weighted_avg(pp_list)
     weighted_pp_sum = sum(weighted_pp_avg)
 
@@ -92,4 +101,7 @@ def get_newpp(pp_list, pp_raw, pp):
 
     unique_scores = calculate_unique(bonuspp)
 
-    return calculate_new_pp(pp_list, unique_scores, a, b, pp, mode="baseline")
+    predicted_pp = calculate_new_pp(pp_list, unique_scores, a, b, pp, mode="predict")
+    # baseline_pp = calculate_new_pp(pp_list, plays, a, b, pp, mode="baseline")
+
+    return predicted_pp
